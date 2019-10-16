@@ -1,2 +1,2 @@
-# face-recognition
+# Face-recognition
 Detects face in a photograph
