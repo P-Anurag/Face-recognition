@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import Navbar from './components/navigationBar'
 import ImageLinkForm from './components/imageLinkForm'
 import FaceDetection from './components/faceDetection'
+import SignInForm from './components/signInForm'
+import RegisterForm from './components/register'
 import './App.css';
 
 import Clarifai from 'clarifai';
@@ -15,7 +17,8 @@ class App extends Component {
   state = {
     input: '',
     imgURL: '',
-    box: {}
+    box: {},
+    route: 'sign-in'
   }
 
   calculateBoundingBox = (data) => {
@@ -54,13 +57,28 @@ class App extends Component {
 
   }
 
+  onRouteChange = (routeLink) => {
+    this.setState({ route: routeLink })
+  }
   render() {
-    return (<div className="App-body">
-      <Navbar />
-      <ImageLinkForm onSubmit={this.onSubmit} onInputChange={this.onInputChange} />
-      <FaceDetection box={this.state.box} imgURL={this.state.imgURL} />
+    return (
+      <div className="App-body">
 
-    </div>);
+        {this.state.route === 'home' ?
+          <div >
+            <Navbar onRouteChange={this.onRouteChange} />
+            <ImageLinkForm onSubmit={this.onSubmit} onInputChange={this.onInputChange} />
+            <FaceDetection box={this.state.box} imgURL={this.state.imgURL} />
+          </div>
+
+          :
+          (this.state.route === 'sign-in' ?
+            <SignInForm onRouteChange={this.onRouteChange} />
+            :
+            <RegisterForm />)
+        }
+      </div>
+    );
   }
 }
 

@@ -10,7 +10,6 @@ class FaceDetection extends Component {
           {
             <img
               id="inputImage"
-              alt=" "
               src={this.props.imgURL}
               width="500px"
               height="auto"
