@@ -1,7 +1,41 @@
 import React, { Component } from "react";
 
 class RegisterForm extends Component {
-  state = {};
+  state = {
+    name: "",
+    email: "",
+    password: ""
+  };
+  onEmailChange = email => {
+    this.setState({ email: email.target.value });
+  };
+  onPasswordChange = password => {
+    this.setState({ password: password.target.value });
+  };
+  onNameChange = name => {
+    this.setState({ name: name.target.value });
+  };
+  onSubmitChange = event => {
+    console.log(this.state);
+    fetch("http://localhost:3000/register", {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: this.state.name,
+        email: this.state.email,
+        password: this.state.password
+      })
+    })
+      .then(response => response.json())
+      .then(user => {
+        if (user) {
+          this.props.onRouteChange("sign-in");
+        }
+      });
+    event.preventDefault();
+  };
   render() {
     return (
       <article className="shadow-5 br2 ba dark-gray b--black-10 mv4 w-100 w-50-m w-25-l mw5 center">
@@ -10,19 +44,17 @@ class RegisterForm extends Component {
             <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
               <legend className="f4 fw6 ph0 mh0">Register</legend>
               <div className="mt3">
-                <label className="db fw6 lh-copy f6" for="name">
-                  Name
-                </label>
+                <label className="db fw6 lh-copy f6">Name</label>
                 <input
+                  onChange={this.onNameChange}
                   className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100"
                   type="text"
                   name="name"
                   id="name"
                 />
-                <label className="db fw6 lh-copy f6" for="email-address">
-                  Email
-                </label>
+                <label className="db fw6 lh-copy f6">Email</label>
                 <input
+                  onChange={this.onEmailChange}
                   className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100"
                   type="email"
                   name="email-address"
@@ -30,10 +62,9 @@ class RegisterForm extends Component {
                 />
               </div>
               <div className="mv3">
-                <label className="db fw6 lh-copy f6" for="password">
-                  Password
-                </label>
+                <label className="db fw6 lh-copy f6">Password</label>
                 <input
+                  onChange={this.onPasswordChange}
                   className="b pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100"
                   type="password"
                   name="password"
@@ -43,7 +74,7 @@ class RegisterForm extends Component {
             </fieldset>
             <div className="">
               <input
-                onClick={() => this.props.onRouteChange("sign-in")}
+                onClick={this.onSubmitChange}
                 className="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6 dib"
                 type="submit"
                 value="Register"

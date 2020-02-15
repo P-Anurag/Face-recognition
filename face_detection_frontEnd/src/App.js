@@ -4,6 +4,7 @@ import ImageLinkForm from './components/imageLinkForm'
 import FaceDetection from './components/faceDetection'
 import SignInForm from './components/signInForm'
 import RegisterForm from './components/register'
+import Rank from './components/rank'
 import './App.css';
 
 import Clarifai from 'clarifai';
@@ -18,15 +19,41 @@ class App extends Component {
     input: '',
     imgURL: '',
     box: {},
-    route: 'sign-in'
+    route: 'sign-in',
+    isSignedIn: false,
+    user: {
+      id: '',
+      name: '',
+      email: '',
+      entries: '',
+      date: ''
+    }
   }
 
+  // componentDidMount() {
+  //   fetch('http://localhost:3000/')
+  //     .then(response => response.json())
+  //     .then(console.log)
+  // }
+
+  loadUser = (user) => {
+
+    this.setState({
+      user: {
+        id: user.ID,
+        name: user.NAME,
+        email: user.EMAIL,
+        entries: user.ENTRIES,
+        date: user.JOINED
+      }
+    })
+  }
   calculateBoundingBox = (data) => {
     const clarifaiRes = data.outputs[0].data.regions[0].region_info.bounding_box;
     const inputImage = document.getElementById('inputImage');
     const width = Number(inputImage.width);
     const height = Number(inputImage.height);
-    console.log(clarifaiRes);
+
 
     return {
       leftColumn: width * clarifaiRes.left_col,
@@ -38,7 +65,7 @@ class App extends Component {
 
   faceBox = (box) => {
     this.setState({ box: box });
-    console.log(box);
+    // console.log(box);
   }
 
   onInputChange = (event) => {
@@ -51,31 +78,62 @@ class App extends Component {
       .predict(
         Clarifai.FACE_DETECT_MODEL,
         this.state.input)
-      .then(response => this.calculateBoundingBox(response))
-      .then(response => this.faceBox(response))
-      .catch(err => console.log(err));
+      .then(response => {
+
+        if (response) {
+          fetch("http://localhost:3000/image", {
+            method: "put",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              id: this.state.user.id
+            })
+          })
+            .then(response => response.json())
+            .then(response => {
+              let user = { ...this.state.user };
+              user.entries = response.ENTRIES;
+              this.setState({ user })
+            })
+        }
+        this.faceBox(this.calculateBoundingBox(response))
+      })
+
+
+      .catch(err => console.log(err))
 
   }
 
   onRouteChange = (routeLink) => {
+
     this.setState({ route: routeLink })
+    if (this.state.route === 'home') {
+      this.setState({ isSignedIn: true });
+    }
+    else {
+      this.setState({ isSignedIn: false })
+    }
+
   }
   render() {
+
     return (
       <div className="App-body">
-
+        <Navbar onRouteChange={this.onRouteChange} isSignedIn={this.state.isSignedIn} />
         {this.state.route === 'home' ?
           <div >
-            <Navbar onRouteChange={this.onRouteChange} />
+
+            <Rank user={this.state.user} />
             <ImageLinkForm onSubmit={this.onSubmit} onInputChange={this.onInputChange} />
             <FaceDetection box={this.state.box} imgURL={this.state.imgURL} />
           </div>
 
           :
           (this.state.route === 'sign-in' ?
-            <SignInForm onRouteChange={this.onRouteChange} />
+            <SignInForm loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
             :
-            <RegisterForm />)
+            <RegisterForm onRouteChange={this.onRouteChange} />)
         }
       </div>
     );
